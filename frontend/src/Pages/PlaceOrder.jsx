@@ -59,7 +59,7 @@ const PlaceOrder = () => {
     }
 
     // Send order data to backend
-    const response = await fetch('http://localhost:4000/place', {
+    const response = await fetch('https://urban-sneakers-backend.onrender.com/place', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
