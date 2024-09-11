@@ -12,7 +12,7 @@ const LoginSignup = () => {
 
   const login = async () => {
     let dataObj;
-    await fetch('http://localhost:4000/login', {
+    await fetch('https://urban-sneakers-backend.onrender.com/login', {
       method: 'POST',
       headers: {
         Accept:'application/form-data',
