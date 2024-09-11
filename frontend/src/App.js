@@ -12,7 +12,7 @@ import kid_banner from "./Components/Assets/Kids-Banner.png";
 import LoginSignup from "./Pages/LoginSignup";
 import MyOrders from "./Pages/MyOrders";
 
-export const backend_url = 'http://localhost:4000';
+export const backend_url = 'https://urban-sneakers-backend.onrender.com';
 export const currency = '₹';
 
 function App() {
