@@ -12,7 +12,7 @@ const MyOrders = () => {
         const fetchOrders = async () => {
             try {
                 const token = localStorage.getItem('auth-token'); // Assuming you're storing the auth token in localStorage
-                const response = await fetch('http://localhost:4000/userorders', {
+                const response = await fetch('https://urban-sneakers-backend.onrender.com/userorders', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
