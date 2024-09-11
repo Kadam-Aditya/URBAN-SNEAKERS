@@ -1,0 +1,133 @@
+/* Container for the whole orders section */
+.my-orders {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 30px;
+    background-color: #f5f5f5; /* Light grey background */
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow for the container */
+    font-family: 'Arial', sans-serif;
+}
+
+/* Title styling */
+.my-orders h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    color: #333;
+}
+
+.GP {
+    text-align: center;
+}
+
+/* Orders list container */
+.orders-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 items per row */
+    gap: 20px;
+    justify-items: center;
+}
+
+/* Individual order card */
+.order-item {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 100%;
+    max-width: 350px;
+    text-align: left;
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
+.order-item:hover {
+    transform: translateY(-5px);
+}
+
+/* Order image */
+.order-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+/* Order details */
+.order-item h3 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.order-item p {
+    font-size: 16px;
+    margin: 5px 0;
+    color: #666;
+}
+
+.order-item ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+
+.order-item li {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 5px;
+}
+
+/* Order status and amount */
+.order-item p span {
+    font-weight: bold;
+}
+
+.loading-orders {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    font-size: 24px;
+    color: #333;
+    font-family: 'Arial', sans-serif;
+}
+
+.love-message {
+    display: flex;
+    align-items: center; /* Align items vertically in the center */
+    justify-content: center; /* Center horizontally */
+     /* Add space between the text and the image */
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .love-message h2 {
+    margin: 0;
+    font-size: 24px;
+    color: black;
+    background-color: white; /* Optional: Make the text pink/red to match the theme */
+  }
+  
+  .love-message img {
+    width: 50px; /* Adjust the size of the image */
+    height: 50px;
+    background-color: transparent; /* Ensure the background of the image is transparent */
+    object-fit: contain; /* Keep the aspect ratio */
+  }
+
+/* Responsive layout for tablets and below */
+@media (max-width: 1024px) {
+    .orders-list {
+        grid-template-columns: repeat(2, 1fr); /* 2 items per row */
+    }
+}
+
+/* Responsive layout for mobile devices */
+@media (max-width: 768px) {
+    .orders-list {
+        grid-template-columns: 1fr; /* 1 item per row */
+    }
+    .order-item {
+        max-width: 100%;
+    }
+}
