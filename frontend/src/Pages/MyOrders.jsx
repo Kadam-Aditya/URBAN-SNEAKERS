@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './CSS/MyOrders.css';
 import PackIcon from '../Components/Assets/PackIcon.avif';
-import Heart from '../Components/Assets/heh.avif';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 
@@ -70,9 +69,7 @@ const MyOrders = () => {
                     {/* Render the overlay */}
                     <div className="popup-overlay"></div>
                     <div className="popup popup-appear">
-                        <p>I Love You Harshu</p>
-                        <p>Get well soon</p>
-                        <img src={Heart} alt="" className="popup-image" />
+                        <p>Pyment Successfull</p>
                     </div>
                 </>
             )}
