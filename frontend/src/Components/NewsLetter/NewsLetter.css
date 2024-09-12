@@ -12,7 +12,7 @@
     background: linear-gradient(180deg, #e0c3fc 0%, #fcfdfd 60%);
     gap: 20px;
     border-radius: 20px 20px 0 0;
-    box-shadow: 0px -4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0px -4px 20px rgba(0, 0, 0, 0.001);
     border-bottom: none;
 }
 
