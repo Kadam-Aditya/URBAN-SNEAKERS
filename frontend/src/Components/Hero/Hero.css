@@ -23,7 +23,7 @@
 
     .hero img {
         width: 100%; /* Make the image responsive */
-        height: auto; /* Maintain aspect ratio */
+        height: 100%; /* Maintain aspect ratio */
         border-radius: 15px; /* Reduce border-radius */
     }
 }
