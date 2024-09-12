@@ -97,23 +97,94 @@
     display: flex;
     align-items: center; /* Align items vertically in the center */
     justify-content: center; /* Center horizontally */
-     /* Add space between the text and the image */
     font-family: 'Arial', sans-serif;
-  }
+}
   
-  .love-message h2 {
+.love-message h2 {
     margin: 0;
     font-size: 24px;
     color: black;
-    background-color: white; /* Optional: Make the text pink/red to match the theme */
-  }
+    background-color: white;
+}
   
-  .love-message img {
-    width: 50px; /* Adjust the size of the image */
+.love-message img {
+    width: 50px;
     height: 50px;
-    background-color: transparent; /* Ensure the background of the image is transparent */
-    object-fit: contain; /* Keep the aspect ratio */
-  }
+    object-fit: contain;
+}
+
+/* Popup overlay */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Black tint with 50% transparency */
+    z-index: 999; /* Layer just below the popup */
+}
+
+/* Popup styling */
+.popup {
+    position: fixed;
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Offset to center */
+    background-color: #fff; /* White background */
+    color: #333;
+    padding: 40px 60px; /* Larger padding for a bigger appearance */
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Slightly larger shadow for emphasis */
+    z-index: 1000; /* Ensure the popup is above the overlay */
+    font-size: 20px; /* Larger font size */
+    font-family: 'Arial', sans-serif;
+    text-align: center; /* Center the text inside the popup */
+    width: 80%; /* Responsive width */
+    max-width: 600px; /* Maximum width for larger screens */
+}
+
+/* Optional: Popup animation */
+.popup-appear {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.popup-appear p{
+    font-size: 24px;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%); /* Start slightly higher */
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.popup img {
+    margin-top: 20px;
+    width: 100px; /* Adjust the size as needed */
+    height: 100px;
+    object-fit: contain; /* Keep the aspect ratio of the image */
+}
+
+.mo {
+    margin-bottom: 13px;
+    margin-top: -15px;
+    text-align: center;
+}
+
+.confetti-fade {
+    opacity: 1;
+    transition: opacity 2s ease-out; /* 2-second fade-out */
+}
+
+.confetti-fade-out {
+    opacity: 0;
+}
 
 /* Responsive layout for tablets and below */
 @media (max-width: 1024px) {
@@ -131,3 +202,5 @@
         max-width: 100%;
     }
 }
+
+

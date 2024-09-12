@@ -8,6 +8,7 @@ const PlaceOrder = () => {
   const { getTotalCartItemsId } = useContext(ShopContext);
   const currency = '₹';
   const navigate = useNavigate();
+  
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -75,6 +76,7 @@ const PlaceOrder = () => {
     const data = await response.json();
 
     if (data.success) {
+      localStorage.setItem('showPopup', 'true');
       // Redirect to Razorpay or payment gateway
       const options = {
         key: process.env.REACT_APP_RAZORPAY_KEY, // Razorpay key
