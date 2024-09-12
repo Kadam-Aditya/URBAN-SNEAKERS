@@ -42,11 +42,11 @@ const ProductDisplay = ({product}) => {
         <div className="productdisplay-right-size">
           <h1>Select Size</h1>
           <div className="productdisplay-right-sizes">
-            <div>S</div>
-            <div>M</div>
-            <div>L</div>
-            <div>XL</div>
-            <div>XXL</div>
+            <div>7</div>
+            <div>8</div>
+            <div>9</div>
+            <div>10</div>
+            <div>11</div>
           </div>
         </div>
         <button onClick={()=>addToCart(product.id)}>ADD TO CART</button>

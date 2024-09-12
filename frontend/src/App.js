@@ -6,9 +6,9 @@ import PlaceOrder from "./Pages/PlaceOrder";
 import Product from "./Pages/Product";
 import Footer from "./Components/Footer/Footer";
 import ShopCategory from "./Pages/ShopCategory";
-import women_banner from "./Components/Assets/Women-Banner.png";
-import men_banner from "./Components/Assets/Men-Banner.png";
-import kid_banner from "./Components/Assets/Kids-Banner.png";
+import women_banner from "./Components/Assets/WW-B.png";
+import men_banner from "./Components/Assets/MM-B.png";
+import kid_banner from "./Components/Assets/KK-B.png";
 import LoginSignup from "./Pages/LoginSignup";
 import MyOrders from "./Pages/MyOrders";
 

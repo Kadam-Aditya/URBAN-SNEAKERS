@@ -70,7 +70,7 @@
 
 .vertical-dashed-line {
     position: absolute;
-    left: 63.7%; /* Center horizontally */
+    left: 64.92%; /* Center horizontally */
     top: 12%; /* Adjust this value to position the line vertically */
     transform: translateX(-50%);
     border-left: 2px dashed white;

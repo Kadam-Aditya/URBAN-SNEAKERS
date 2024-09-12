@@ -22,12 +22,6 @@ const ShopCategory = (props) => {
     <div className="shopcategory">
       <div className="shopcategory-banner-container">
         <img src={props.banner} className="shopcategory-banner" alt="Shop Banner" />
-        <div className="shopcategory-banner-text">
-          <h1>FLAT 50% OFF</h1>
-          <h2>Shop Our Latest Collection</h2>
-          <p>Discover the best deals and newest arrivals</p>
-          <button to="/shop" className="shop-now-button">Explore Now</button>
-        </div>
         <div className="vertical-dashed-line"></div>
       </div>
       <div className="shopcategory-indexSort">
