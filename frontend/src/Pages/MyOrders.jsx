@@ -3,6 +3,7 @@ import './CSS/MyOrders.css';
 import PackIcon from '../Components/Assets/PackIcon.avif';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
+import { backend_url } from '../App.js';
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -16,7 +17,7 @@ const MyOrders = () => {
         const fetchOrders = async () => {
             try {
                 const token = localStorage.getItem('auth-token'); // Assuming you're storing the auth token in localStorage
-                const response = await fetch('https://urban-sneakers-backend.onrender.com/userorders', {
+                const response = await fetch(`${backend_url}/userorders`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

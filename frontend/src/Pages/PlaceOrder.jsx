@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import "./CSS/PlaceOrder.css";
 import { ShopContext } from '../Context/ShopContext';
 import { useNavigate } from 'react-router-dom';
+import { backend_url } from '../App.js';
 
 const PlaceOrder = () => {
   const { getTotalCartAmount } = useContext(ShopContext);
@@ -60,7 +61,7 @@ const PlaceOrder = () => {
     }
 
     // Send order data to backend
-    const response = await fetch('https://urban-sneakers-backend.onrender.com/place', {
+    const response = await fetch(`${backend_url}/place`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
