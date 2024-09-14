@@ -28,6 +28,9 @@
 /* ---------- media query------------ */
 
 @media(max-width: 800px){
+    .popular {
+        margin-top: -70px; /* Move the section up for small screens */
+    }
     .popular h1{
         font-size: 30px;
     }

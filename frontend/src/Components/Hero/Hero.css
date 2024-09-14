@@ -22,9 +22,11 @@
     }
 
     .hero img {
-        width: 100%; /* Make the image responsive */
-        height: auto; /* Maintain aspect ratio */
-        border-radius: 15px; /* Reduce border-radius */
+        width: 300px; /* Make the image responsive */
+        height: 200px; /* Maintain aspect ratio */
+        border-radius: 15px;
+        padding: 8px;  /* Reduce border-radius */
+        border: 2px dashed grey; 
     }
 }
 
