@@ -5,12 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { backend_url } from '../App.js';
 
 const PlaceOrder = () => {
-  const { getTotalCartAmount } = useContext(ShopContext);
-  const { getTotalCartItemsId } = useContext(ShopContext);
+  const { getTotalCartAmount, getTotalCartItemsId } = useContext(ShopContext);
   const currency = '₹';
   const navigate = useNavigate();
   
-
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -24,7 +22,6 @@ const PlaceOrder = () => {
     document.body.appendChild(script);
   }, []);
 
-
   const [orderData, setOrderData] = useState({
     firstName: '',
     lastName: '',
@@ -37,7 +34,8 @@ const PlaceOrder = () => {
     phone: ''
   });
 
-  // Handle input change
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
     setOrderData({
       ...orderData,
@@ -45,30 +43,58 @@ const PlaceOrder = () => {
     });
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Proceed to Pay clicked");
+
+    const zipCodePattern = /^[1-9][0-9]{5}$/;
+    let errors = {};
+
+    // Validate ZIP code for India
+    if (!zipCodePattern.test(orderData.zip)) {
+      errors.zip = "The zip code should be 6 digits";
+    }
+
+    // Additional validations
+    if (!orderData.firstName.trim()) {
+      errors.firstName = "First name is required.";
+    }
+
+    if (!orderData.email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/\S+@\S+\.\S+/.test(orderData.email)) {
+      errors.email = "Email address is invalid.";
+    }
+
+    if (!orderData.phone.trim()) {
+      errors.phone = "Phone number is required.";
+    } else if (!/^[6-9]\d{9}$/.test(orderData.phone)) {
+      errors.phone = "The phone number should be 10 digits";
+    }
+
+    setErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      console.error("Validation errors:", errors);
+      return;
+    }
 
     const totalAmount = getTotalCartAmount();
     const items = getTotalCartItemsId();
-
-    const token = localStorage.getItem("auth-token"); // Retrieve token from localStorage
+    const token = localStorage.getItem("auth-token");
 
     if (!token) {
       console.error("No auth token found. Please log in.");
       return;
     }
 
-    // Send order data to backend
     const response = await fetch(`${backend_url}/place`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'auth-token': localStorage.getItem('auth-token') // Assuming you're using auth-token in localStorage
+        'auth-token': token
       },
       body: JSON.stringify({
-        items: items,  // Assuming you have cart items from your context or state
+        items,
         amount: totalAmount,
         address: orderData
       })
@@ -78,16 +104,14 @@ const PlaceOrder = () => {
 
     if (data.success) {
       localStorage.setItem('showPopup', 'true');
-      // Redirect to Razorpay or payment gateway
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY, // Razorpay key
+        key: process.env.REACT_APP_RAZORPAY_KEY,
         amount: data.amount,
         currency: data.currency,
         name: 'E-commerce Website',
         description: 'Test Transaction',
         order_id: data.order_id,
         handler: function (response) {
-          
           navigate('/myorders');
         },
         prefill: {
@@ -123,6 +147,7 @@ const PlaceOrder = () => {
             onChange={handleChange}
             required
           />
+          {errors.firstName && <span className="error">{errors.firstName}</span>}
           <input
             type="text"
             placeholder='Last name'
@@ -140,6 +165,7 @@ const PlaceOrder = () => {
           onChange={handleChange}
           required
         />
+        {errors.email && <span className="error">{errors.email}</span>}
         <input
           type="text"
           placeholder='Street'
@@ -175,6 +201,7 @@ const PlaceOrder = () => {
             onChange={handleChange}
             required
           />
+          {errors.zip && <span className="error">{errors.zip}</span>}
           <input
             type="text"
             placeholder='Country'
@@ -186,12 +213,13 @@ const PlaceOrder = () => {
         </div>
         <input
           type="text"
-          placeholder='Phone'
+          placeholder='phone no. (10 digits)'
           name="phone"
           value={orderData.phone}
           onChange={handleChange}
           required
         />
+        {errors.phone && <span className="error">{errors.phone}</span>}
       </div>
       <div className="place-order-right">
         <div className="cartitems-total">

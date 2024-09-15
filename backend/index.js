@@ -151,6 +151,7 @@ app.post('/signup', async (req, res) => {
 })
 
 
+
 // endpoint for getting all products data
 app.get("/allproducts", async (req, res) => {
   let products = await Product.find({});
