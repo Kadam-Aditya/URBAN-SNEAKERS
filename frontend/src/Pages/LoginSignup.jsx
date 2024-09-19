@@ -1,12 +1,17 @@
 import React, { useState } from "react";
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import "./CSS/LoginSignup.css";
 import { backend_url } from '../App.js';
 
-const LoginSignup = () => {
 
+
+const LoginSignup = () => {
   const [state, setState] = useState("Login");
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const changeHandler = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,7 +20,7 @@ const LoginSignup = () => {
   const validate = () => {
     const errors = {};
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     if (state === "Sign Up" && !formData.username.trim()) {
       errors.username = "Username is required.";
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
@@ -49,50 +54,66 @@ const LoginSignup = () => {
   };
 
   const login = async () => {
-    if (!validate()) return;
-
-    let dataObj;
-    await fetch(`${backend_url}/login`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/form-data',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((resp) => resp.json())
-      .then((data) => { dataObj = data; });
-    console.log(dataObj);
-    if (dataObj.success) {
-      localStorage.setItem('auth-token', dataObj.token);
-      window.location.replace("/");
-    } else {
-      alert(dataObj.errors);
+    setLoading(true);
+    try {
+      const response = await fetch(`${backend_url}/login`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/form-data',  // Correcting header from 'application/form-data' to 'application/json'
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      const dataObj = await response.json();
+      
+      if (response.ok && dataObj.success) {
+        localStorage.setItem('auth-token', dataObj.token);
+        window.location.replace("/");
+      } else if (dataObj.otpRequired) {
+        // Redirect to OTP verification if OTP is not verified
+        navigate('/otpverification', { state: { email: formData.email } });
+      } else {
+        // Show the error message if the login fails
+        alert(dataObj.errors || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error during login:", error);
+      alert("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
   const signup = async () => {
     if (!validate()) return;
+    setLoading(true); 
 
-    let dataObj;
-    await fetch(`${backend_url}/signup`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/form-data',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((resp) => resp.json())
-      .then((data) => { dataObj = data; });
-
-    if (dataObj.success) {
-      localStorage.setItem('auth-token', dataObj.token);
-      window.location.replace("/");
-    } else {
-      alert(dataObj.errors);
+    try {
+      const response = await fetch(`${backend_url}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+  
+      const data = await response.json();
+  
+      if (data.existingUser) {
+        alert(data.message);
+        window.location.href = '/login';
+      }
+      else{
+        navigate('/otpverification', { state: { email: formData.email } });
+      }
+    } catch (error) {
+      console.error("Signup Error:", error);
+      alert("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false); // End loading
     }
   };
+  
+  
 
   return (
     <div className="loginsignup">
@@ -129,7 +150,20 @@ const LoginSignup = () => {
           {errors.password && <p className="error">{errors.password}</p>}
         </div>
 
-        <button onClick={() => { state === "Login" ? login() : signup() }}>Continue</button>
+        <button
+          onClick={() => {
+            if (state === "Login") {
+              login();
+            } else if (state === "Sign Up") {
+              signup();
+            }
+          }}
+          disabled={loading}
+        >
+          {loading ? <div className="spinner"></div> : "Continue"}
+        </button>
+
+
 
         {state === "Login" ? (
           <p className="loginsignup-login">Create an account? <span onClick={() => { setState("Sign Up") }}>Click here</span></p>

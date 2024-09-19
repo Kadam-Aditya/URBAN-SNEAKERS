@@ -11,6 +11,7 @@ import men_banner from "./Components/Assets/MM-B.png";
 import kid_banner from "./Components/Assets/KK-B.png";
 import LoginSignup from "./Pages/LoginSignup";
 import MyOrders from "./Pages/MyOrders";
+import OtpVerification from "./Pages/OtpVerification";
 
 export const backend_url = 'http://localhost:4000';
 export const currency = '₹';
@@ -33,6 +34,7 @@ function App() {
           <Route path="/order" element={<PlaceOrder />} />
           <Route path="/login" element={<LoginSignup/>} />
           <Route path="/myorders" element={<MyOrders />} />
+          <Route path="/otpverification" element={<OtpVerification />} />
         </Routes>
         <Footer />
       </Router>

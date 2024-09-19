@@ -7,6 +7,10 @@ const path = require("path");
 const cors = require("cors");
 const crypto = require('crypto');
 const Razorpay = require("razorpay");
+const { type } = require("os");
+const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
+
 
 require('dotenv').config();
 const port = process.env.PORT || 4000;
@@ -44,17 +48,18 @@ app.use('/images', express.static('upload/images'));
 
 
 
-const fetchuser = async (req, res, next) => {
-  const token = req.header("auth-token");
+const fetchuser = (req, res, next) => {
+  const token = req.header('auth-token');
   if (!token) {
-    res.status(401).send({ errors: "Please authenticate using a valid token" });
+    return res.status(401).send({ error: "Please authenticate using a valid token" });
   }
+
   try {
     const data = jwt.verify(token, "secret_ecom");
-    req.user = data.user;
+    req.user = data.user; // Attach user data to the request object
     next();
   } catch (error) {
-    res.status(401).send({ errors: "Please authenticate using a valid token" });
+    return res.status(401).send({ error: "Please authenticate using a valid token" });
   }
 };
 
@@ -66,6 +71,7 @@ const Users = mongoose.model("Users", {
   password: { type: String },
   cartData: { type: Object },
   date: { type: Date, default: Date.now() },
+  otpverified: {type: Boolean, default: false}
 });
 
 
@@ -96,59 +102,103 @@ app.get("/", (req, res) => {
 app.post('/login', async (req, res) => {
   console.log("Login");
   let success = false;
-  let user = await Users.findOne({ email: req.body.email });
-  if (user) {
-    const passCompare = req.body.password === user.password;
-    if (passCompare) {
-      const data = {
-        user: {
-          id: user.id
-        }
-      }
-      success = true;
-      console.log(user.id);
-      const token = jwt.sign(data, 'secret_ecom');
-      res.json({ success, token });
+  const { email, password } = req.body;
+  
+  try {
+    // Find the user by email
+    let user = await Users.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ success: false, errors: "Please try with correct email/password." });
     }
-    else {
-      return res.status(400).json({ success: success, errors: "please try with correct email/password" })
+
+    // Check if the password matches
+    const passCompare = password === user.password;
+
+    if (!passCompare) {
+      return res.status(400).json({ success: false, errors: "Please try with correct email/password." });
     }
+
+    // Check if OTP is verified
+    if (!user.otpverified) {
+      // Generate and send OTP verification email
+      const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
+      const hashedOtp = await bcrypt.hash(otp, 10);
+
+      // Save new OTP in the database
+      await UserOTPVerificationSchema.updateOne(
+        { email },
+        { otp: hashedOtp, expireAt: Date.now() + 15 * 60 * 1000 },
+        { upsert: true }
+      );
+
+      // Send OTP via email
+      await verifysendEmailOTP(email, otp);
+
+      return res.status(400).json({ 
+        success: false, 
+        otpRequired: true,  
+        email: user.email, 
+        errors: "Please verify your account before logging in. Redirecting to verification page."
+      });
+    }
+
+    // If OTP is verified, proceed with JWT token generation
+    const data = { user: { id: user.id } };
+    success = true;
+    const token = jwt.sign(data, 'secret_ecom');
+
+    // Send response with token
+    return res.json({ success, token });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ success: false, errors: "Server error." });
   }
-  else {
-    return res.status(400).json({ success: success, errors: "please try with correct email/password" })
-  }
-})
+});
+
+
+
+
+
 
 
 //Create an endpoint at ip/auth for regestring the user & sending auth-token
 app.post('/signup', async (req, res) => {
-  console.log("Sign Up");
-  let success = false;
-  let check = await Users.findOne({ email: req.body.email });
-  if (check) {
-    return res.status(400).json({ success: success, errors: "existing user found with this email" });
-  }
-  let cart = {};
-  for (let i = 0; i < 300; i++) {
-    cart[i] = 0;
-  }
-  const user = new Users({
-    name: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
-    cartData: cart,
-  });
-  await user.save();
-  const data = {
-    user: {
-      id: user.id
-    }
-  }
+  try {
+    console.log("Sign Up");
 
-  const token = jwt.sign(data, 'secret_ecom');
-  success = true;
-  res.json({ success, token })
-})
+    // Check if user already exists
+    let check = await Users.findOne({ email: req.body.email });
+    
+    if (check) {
+      // Redirect to login if user already exists
+      return res.status(200).json({ success: false, existingUser: true, message: "Existing user found with this email. Redirecting to login page." });
+    }
+
+    // Initialize empty cart for user
+    let cart = {};
+    for (let i = 0; i < 300; i++) {
+      cart[i] = 0;
+    }
+
+    // Create a new user
+    const user = new Users({
+      name: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      cartData: cart,
+    });
+
+    await user.save();  // Save user data to MongoDB
+    await sendOTPVerificationEmail(user, res);  // Send OTP
+
+  } catch (error) {
+    console.error("Signup Error: ", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
 
 
 
@@ -352,3 +402,294 @@ app.post("/userorders", fetchuser, async (req, res) => {
 
 
 });
+
+
+const UserOTPVerificationSchema = mongoose.model("UserOTPVerificationSchema", {
+  userId: { type: String, required: true },
+  email: { type: String, unique: true },
+  otp: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  expireAt: { type: Date, default: Date.now },
+});
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  secure: true,
+  port: 465,
+  auth: {
+    user: process.env.AUTH_EMAIL,
+    pass: process.env.AUTH_PASS
+  },
+});
+
+const sendOTPVerificationEmail = async ({ _id, email }, res) => {
+  try {
+    const otp = `${Math.floor(1000 + Math.random() * 9000)}`; // Generate a 4-digit OTP
+
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL, // Email sender (your configured email)
+      to: email, // Recipient's email
+      subject: "Urban Sneakers - Confirm Your Email",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+          <h2 style="color: #333; text-align: center;">Welcome to Urban Sneakers!</h2>
+          <p style="font-size: 16px; color: #555; text-align: center;">
+            You're just one step away from exploring our exclusive sneaker collection. Please verify your email address to complete your registration.
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 18px; color: #333;"><b>Your Verification Code:</b></p>
+            <p style="font-size: 24px; color: #6a62f9; font-weight: bold;">${otp}</p>
+            <p style="font-size: 14px; color: #777;">This code will expire in 10 mins.</p>
+          </div>
+
+          <p style="font-size: 16px; color: #555; text-align: center;">
+            Enter this code in the app to verify your email and get started on your Urban Sneakers journey!
+          </p>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <a href="https://yourwebsite.com" style="background-color: #6a62f9; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Verify Now</a>
+          </div>
+
+          <p style="font-size: 14px; color: #777; text-align: center; margin-top: 30px;">
+            If you did not sign up for Urban Sneakers, please ignore this email or contact our support team.
+          </p>
+
+          <p style="font-size: 12px; color: #aaa; text-align: center; margin-top: 20px;">
+            &copy; 2024 Urban Sneakers, All rights reserved.
+          </p>
+        </div>
+      `
+    };
+
+    // Hash the OTP for security reasons
+    const saltRounds = 10;
+    const hashedOTP = await bcrypt.hash(otp, saltRounds);
+
+    // Store the hashed OTP in the database along with user info
+    const newOTPVerification = new UserOTPVerificationSchema({
+      userId: _id,
+      email: email,
+      otp: hashedOTP,
+      createdAt: Date.now(),
+      expireAt: Date.now() + 600000, 
+    });
+
+    await newOTPVerification.save(); // Save OTP data in MongoDB
+
+    // Send the OTP email
+    await transporter.sendMail(mailOptions);
+
+    // Send response after email is successfully sent
+    return res.json({
+      status: "PENDING",
+      message: "Verification OTP email sent",
+      data: {
+        userId: _id,
+        email,
+      },
+    });
+  } catch (error) {
+    console.error("OTP Sending Error: ", error);
+
+    // Send error response if OTP email fails
+    return res.status(500).json({
+      status: "FAILED",
+      message: "Could not send OTP verification email.",
+      error: error.message
+    });
+  }
+};
+
+app.post("/verifyOTP", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Missing email or OTP" });
+    }
+
+    // Find the OTP entry for the email
+    const userOTPVerification = await UserOTPVerificationSchema.findOne({ email });
+
+    if (!userOTPVerification) {
+      return res.status(400).json({ message: "OTP not found or expired" });
+    }
+
+    // Check if the OTP has expired
+    if (userOTPVerification.expireAt < Date.now()) {
+      await UserOTPVerificationSchema.deleteOne({ email });
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    console.log(userOTPVerification.otp);
+    console.log(otp);
+
+    // Compare the OTP provided by the user with the stored, hashed OTP
+    const isValidOTP = await bcrypt.compare(otp, userOTPVerification.otp);
+
+    if (!isValidOTP) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Mark the user as verified
+    await Users.updateOne({ email }, { otpverified: true });
+
+    // Remove OTP record after successful verification
+    await UserOTPVerificationSchema.deleteOne({ email });
+
+    res.json({ success: true, message: "OTP verified successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post("/resendOTP", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Missing email" });
+    }
+
+    // Check if the user exists
+    const user = await Users.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Generate new OTP and send it to the user
+    const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    const hashedOtp = await bcrypt.hash(newOtp, 10);
+
+    // Save new OTP in the database
+    await UserOTPVerificationSchema.updateOne(
+      { email },
+      { otp: hashedOtp, expireAt: Date.now() + 15 * 60 * 1000 },
+      { upsert: true }
+    );
+
+    // Send OTP via email
+    await resendOtpEmail(email, newOtp);  // Implement this function
+
+    res.json({ success: true, message: "OTP has been resent to your email." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+const resendOtpEmail = async (email, otp) => {
+  try {
+    // Create transporter object using your email service
+    let transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      secure: true,
+      port: 465,
+      auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASS
+      },
+    });
+
+    // Email options
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL, // Email sender (your configured email)
+      to: email, // Recipient's email
+      subject: "Urban Sneakers - Confirm Your Email",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+          <h2 style="color: #333; text-align: center;">Welcome to Urban Sneakers!</h2>
+          <p style="font-size: 16px; color: #555; text-align: center;">
+            You're just one step away from exploring our exclusive sneaker collection. Please verify your email address to complete your registration.
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 18px; color: #333;"><b>Your Verification Code:</b></p>
+            <p style="font-size: 24px; color: #6a62f9; font-weight: bold;">${otp}</p>
+            <p style="font-size: 14px; color: #777;">This code will expire in 10 mins.</p>
+          </div>
+
+          <p style="font-size: 16px; color: #555; text-align: center;">
+            Enter this code in the app to verify your email and get started on your Urban Sneakers journey!
+          </p>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <a href="https://yourwebsite.com" style="background-color: #6a62f9; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Verify Now</a>
+          </div>
+
+          <p style="font-size: 14px; color: #777; text-align: center; margin-top: 30px;">
+            If you did not sign up for Urban Sneakers, please ignore this email or contact our support team.
+          </p>
+
+          <p style="font-size: 12px; color: #aaa; text-align: center; margin-top: 20px;">
+            &copy; 2024 Urban Sneakers, All rights reserved.
+          </p>
+        </div>
+      `
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log('OTP email sent successfully!');
+  } catch (error) {
+    console.error('Error sending OTP email:', error);
+    throw new Error('Could not send OTP email');
+  }
+};
+
+const verifysendEmailOTP = async (email, otp) => {
+  try {
+    // Create transporter object using your email service
+    let transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      secure: true,
+      port: 465,
+      auth: {
+        user: process.env.AUTH_EMAIL,
+        pass: process.env.AUTH_PASS
+      },
+    });
+
+    // Email options
+    const mailOptions = {
+      from: process.env.AUTH_EMAIL, // Email sender (your configured email)
+      to: email, // Recipient's email
+      subject: "Urban Sneakers - OTP Verification",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+          <h2 style="color: #333; text-align: center;">OTP Verification</h2>
+          <p style="font-size: 16px; color: #555; text-align: center;">
+            You're just one step away from accessing your account. Please use the OTP below to verify your email address.
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 18px; color: #333;"><b>Your OTP Code:</b></p>
+            <p style="font-size: 24px; color: #6a62f9; font-weight: bold;">${otp}</p>
+            <p style="font-size: 14px; color: #777;">This code will expire in 10 mins.</p>
+          </div>
+
+          <p style="font-size: 16px; color: #555; text-align: center;">
+            Enter this code in the app to verify your email and get started with your Urban Sneakers account!
+          </p>
+
+          <p style="font-size: 14px; color: #777; text-align: center; margin-top: 30px;">
+            If you did not request this, please ignore this email or contact our support team.
+          </p>
+
+          <p style="font-size: 12px; color: #aaa; text-align: center; margin-top: 20px;">
+            &copy; 2024 Urban Sneakers, All rights reserved.
+          </p>
+        </div>
+      `
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log('OTP email sent successfully!');
+  } catch (error) {
+    console.error('Error sending OTP email:', error);
+    throw new Error('Could not send OTP email');
+  }
+};
+

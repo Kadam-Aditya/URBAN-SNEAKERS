@@ -1,0 +1,170 @@
+.otp-verification-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: white;
+  }
+  
+  .otp-check-email {
+    margin-top: -180px;
+    margin-bottom: 30px;
+    font-size: 1.2rem;
+    color: #555;
+    text-align: center;
+    max-width: 400px;
+  }
+  
+  .otp-box {
+    background-color: #f0f0f0;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+    width: 100%;
+    height: 260px;
+  }
+  
+  h2 {
+    color: #31276f;
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+  
+  .otp-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .otp-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+  
+  .otp-input {
+    border: none;
+    border-bottom: 2px solid #31276f;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-size: 24px;
+    outline: none;
+    background-color: transparent;
+    color: #31276f;
+    font-weight: bold;
+  }
+  
+  .otp-input:focus {
+    border-bottom: 2px solid #000;
+  }
+  
+  .otp-submit-btn {
+    background-color: #31276f;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    border-radius: 5px;
+  }
+  
+  .otp-submit-btn:hover {
+    background-color: #1e184f;
+  }
+  
+  .error-message {
+    color: red;
+    margin-bottom: 15px;
+  }
+
+  .resend-otp {
+    margin-top: 30px;
+    text-align: center;
+  }
+  
+  .resend-link {
+    color: purple;
+    cursor: pointer;
+    margin-left: 5px;
+  }
+  
+  .resend-link:hover {
+    text-decoration: underline;
+  }
+  
+  .success-message {
+    color: green;
+  }
+  
+  
+  /* Small screen adjustments */
+  @media (max-width: 768px) {
+    .otp-verification-container {
+      padding: 10px;
+      margin-bottom: -200px;
+    }
+  
+    .otp-box {
+      max-width: 100%;
+      padding: 30px;
+      height: auto;
+    }
+  
+    .otp-check-email {
+      font-size: 1rem;
+      margin-top: -200px;
+      margin-bottom: 20px;
+      max-width: 300px;
+    }
+  
+    .otp-input {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+  
+    .otp-submit-btn {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  
+    h2 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  /* Very small screens (mobile) */
+  @media (max-width: 480px) {
+    .otp-check-email {
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+    }
+  
+    .otp-box {
+      padding: 20px;
+    }
+  
+    .otp-input {
+      width: 35px;
+      height: 35px;
+      font-size: 18px;
+    }
+  
+    .otp-submit-btn {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+  
+    h2 {
+      font-size: 1.2rem;
+    }
+  }
+  
