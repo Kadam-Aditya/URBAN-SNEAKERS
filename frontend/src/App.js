@@ -13,7 +13,7 @@ import LoginSignup from "./Pages/LoginSignup";
 import MyOrders from "./Pages/MyOrders";
 import OtpVerification from "./Pages/OtpVerification";
 
-export const backend_url = 'http://localhost:4000';
+export const backend_url = 'https://urban-sneakers-backend.onrender.com';
 export const currency = '₹';
 
 function App() {
